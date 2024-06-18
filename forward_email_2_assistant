@@ -1,0 +1,30 @@
+# Load Outlook COM object
+$outlook = New-Object -ComObject Outlook.Application
+$namespace = $outlook.GetNamespace("MAPI")
+
+# Access the default Inbox folder
+$inbox = $namespace.GetDefaultFolder([Microsoft.Office.Interop.Outlook.OlDefaultFolders]::olFolderInbox)
+
+# Define the keywords to search for and the forwarding email address
+$keywords = @("keyword1", "keyword2", "keyword3")  # Replace with your keywords
+$forwardToEmail = "forward@example.com"  # Replace with the forwarding email address
+
+# Create a new rule
+$rules = $namespace.DefaultStore.GetRules()
+$newRule = $rules.Create("Forward Specific Emails", [Microsoft.Office.Interop.Outlook.OlRuleType]::olRuleReceive)
+
+# Add conditions to the rule
+$conditions = $newRule.Conditions
+$conditions.BodyOrSubject.Text = $keywords
+$conditions.BodyOrSubject.Enabled = $true
+
+# Add the action to forward the email
+$actions = $newRule.Actions
+$forwardAction = $actions.Forward
+$forwardAction.Recipients.Add($forwardToEmail)
+$forwardAction.Enabled = $true
+
+# Save the rule
+$rules.Save()
+
+Write-Output "Rule created and saved successfully."

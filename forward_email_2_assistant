@@ -2,15 +2,31 @@
 $outlook = New-Object -ComObject Outlook.Application
 $namespace = $outlook.GetNamespace("MAPI")
 
-# Access the default Inbox folder
-$inbox = $namespace.GetDefaultFolder([Microsoft.Office.Interop.Outlook.OlDefaultFolders]::olFolderInbox)
+# Define the email address for which the rule should be created
+$emailAddress = "your.email@domain.com"  # Replace with your specific email address
+
+# Access the specific account's Inbox folder
+$account = $null
+foreach ($acc in $outlook.Session.Accounts) {
+    if ($acc.SmtpAddress -eq $emailAddress) {
+        $account = $acc
+        break
+    }
+}
+
+if ($account -eq $null) {
+    Write-Output "Account with email address $emailAddress not found."
+    exit
+}
+
+$inbox = $account.DeliveryStore.GetDefaultFolder([Microsoft.Office.Interop.Outlook.OlDefaultFolders]::olFolderInbox)
 
 # Define the keywords to search for and the forwarding email address
 $keywords = @("keyword1", "keyword2", "keyword3")  # Replace with your keywords
 $forwardToEmail = "forward@example.com"  # Replace with the forwarding email address
 
 # Create a new rule
-$rules = $namespace.DefaultStore.GetRules()
+$rules = $inbox.Store.GetRules()
 $newRule = $rules.Create("Forward Specific Emails", [Microsoft.Office.Interop.Outlook.OlRuleType]::olRuleReceive)
 
 # Add conditions to the rule
@@ -27,4 +43,4 @@ $forwardAction.Enabled = $true
 # Save the rule
 $rules.Save()
 
-Write-Output "Rule created and saved successfully."
+Write-Output "Rule created and saved successfully for $emailAddress."
